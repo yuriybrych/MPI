@@ -3,12 +3,14 @@ from PyQt6.QtWidgets import (
     QApplication, QFormLayout, QComboBox, QMainWindow, QWidget, QVBoxLayout,
     QHBoxLayout, QLabel, QLineEdit, QPushButton, QGroupBox, QStyle, QColorDialog
 )
+from PyQt6.QtCore import QTimer, QDateTime
+from PyQt6.QtWidgets import QMessageBox
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from PyQt6.QtWidgets import QMessageBox
 import numpy as np
 from mathModule import MathModule
+import time
 
 # я це все коментувати не хочу :(
 
@@ -129,12 +131,21 @@ class MainWindow(QMainWindow):
             "Жовтий": "yellow"
         }
 
-        self.custom_color = "#000000"
+        self.customColor = "#000000"
 
         icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogListView)
         self.setWindowIcon(icon)
 
         self.mainLayout = QHBoxLayout(centralWidget)
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.TimerTick)
+
+        self.currentX = []
+        self.currentY = []
+        self.currentIndex = 0
+        self.pointsPerFrame = 1
+        self.currentLine = None
 
         self.CreateControlPanel()
 
@@ -152,7 +163,7 @@ class MainWindow(QMainWindow):
         self.input_x0 = QLineEdit("0")
         self.input_y0 = QLineEdit("0")
         self.input_angle = QLineEdit("45")
-        self.input_v0 = QLineEdit("0")
+        self.input_v0 = QLineEdit("1")
         self.input_a = QLineEdit("0")
         self.input_time = QLineEdit("5")
         self.input_fps = QLineEdit("30")
@@ -216,6 +227,7 @@ class MainWindow(QMainWindow):
         self.mainLayout.addLayout(MPLlayout)
 
     def ClearGraph(self):
+        self.timer.stop()
         self.axes.clear()
         self.axes.grid(True, linestyle='--')
         self.canvas.draw()
@@ -238,23 +250,56 @@ class MainWindow(QMainWindow):
         t, x, y = mathModule.DoCalculations()
 
         selectedColorName = self.graphColor.currentText()
-
         if selectedColorName == "Свій":
             plotColor = self.customColor
         else:
             plotColor = self.colors.get(selectedColorName, "black")
 
-        self.axes.plot(
-            x,
-            y,
+        self.currentX = x
+        self.currentY = y
+        self.currentIndex = 0
+
+        totalFrames = totalTime * fps
+        if totalFrames == 0:
+            totalFrames = 1
+        self.pointsPerFrame = max(1, len(x) // int(totalFrames))
+
+        self.axes.set_xlim(min(x) - 1, max(x) + 1)
+        self.axes.set_ylim(min(y) - 1, max(y) + 1)
+
+        if fps <= 0:
+            self.axes.plot(
+                x,
+                y,
+                color = plotColor,
+                label = f"v₀ = {v0}, a = {a}, ∠ = {angleDeg}°"
+            )
+            self.axes.legend(loc = 'upper left')
+            self.canvas.draw()
+            return
+
+        self.currentX = x
+        self.currentY = y
+        self.currentIndex = 0
+
+        self.currentLine, = self.axes.plot(
+            [],
+            [],
             color = plotColor,
-            label = f"v0 = {v0}, a = {a}, ∠ = {angleDeg}°"
+            label = f"v₀ = {v0}, a = {a}, ∠ = {angleDeg}°"
         )
 
-        self.axes.legend()
-        self.axes.relim()
-        self.axes.autoscale_view()
+        legend = self.axes.get_legend()
+        if legend:
+            legend.remove()
+
         self.canvas.draw()
+        self.BGCache = self.canvas.copy_from_bbox(self.axes.bbox)
+
+        self.animationStartTime = time.time()
+        self.animationTotalTime = totalTime
+
+        self.timer.start(int(1000 / fps))
 
     def ChooseCustomColor(self, text):
         if text == "Свій":
@@ -264,6 +309,32 @@ class MainWindow(QMainWindow):
                 self.customColor = color.name()
             else:
                 self.graphColor.setCurrentText("Чорний")
+
+    def TimerTick(self):
+        elapsedTime = time.time() - self.animationStartTime
+        progress = elapsedTime / self.animationTotalTime
+
+        if progress >= 1.0:
+            self.currentIndex = len(self.currentX)
+            self.timer.stop()
+            self.axes.legend(loc = "upper left")
+            self.canvas.draw()
+            return
+        else:
+            self.currentIndex = int(progress * len(self.currentX))
+
+        self.currentLine.set_data(
+            self.currentX[:self.currentIndex],
+            self.currentY[:self.currentIndex]
+        )
+
+        self.canvas.restore_region(self.BGCache)
+
+        self.axes.draw_artist(self.currentLine)
+
+        self.canvas.blit(self.axes.bbox)
+
+        self.canvas.flush_events()
 
 
 if __name__ == "__main__":
