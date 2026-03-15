@@ -1,11 +1,14 @@
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QFormLayout, QComboBox, QMainWindow, QWidget, QVBoxLayout,
-    QHBoxLayout, QLabel, QLineEdit, QPushButton, QGroupBox, QStyle
+    QHBoxLayout, QLabel, QLineEdit, QPushButton, QGroupBox, QStyle, QColorDialog
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+from PyQt6.QtWidgets import QMessageBox
+import numpy as np
+from mathModule import MathModule
 
 # я це все коментувати не хочу :(
 
@@ -17,11 +20,23 @@ class MainWindow(QMainWindow):
 
         self.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
-                color: white;
+                background-color: #eee;
+                color: black;
                 font-weight: bold;
-                padding: 8px;
-                border-radius: 5px;
+                padding-top: 2px;
+                padding-bottom: 2px;
+                padding-left: 30px;
+                padding-right: 30px;
+                border-radius: 6px;
+                border: 1px solid #aaa;
+            }
+
+            QPushButton:hover {
+                background-color: #fff;
+            }
+
+            QPushButton:pressed {
+                background-color: #ddd;
             }
 
             QPushButton[buildButton = "true"] {
@@ -108,6 +123,14 @@ class MainWindow(QMainWindow):
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
 
+        self.colors = {
+            "Червоний": "red", "Синій": "blue", "Зелений": "green",
+            "Чорний": "black", "Голубий": "cyan", "Пурпурний": "magenta",
+            "Жовтий": "yellow"
+        }
+
+        self.custom_color = "#000000"
+
         icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogListView)
         self.setWindowIcon(icon)
 
@@ -136,6 +159,7 @@ class MainWindow(QMainWindow):
 
         self.graphColor = QComboBox()
         self.graphColor.addItems(["Червоний", "Синій", "Зелений", "Чорний", "Голубий", "Пурпурний", "Жовтий", "Свій"])
+        self.graphColor.currentTextChanged.connect(self.ChooseCustomColor)
 
         form.addRow("Координата X0 (м):", self.input_x0)
         form.addRow("Координата Y0 (м):", self.input_y0)
@@ -158,6 +182,9 @@ class MainWindow(QMainWindow):
         self.buttonClear = QPushButton("Очистити")
         self.buttonClear.setProperty("clearButton", True)
 
+        self.buttonBuild.clicked.connect(self.BuildGraph)
+        self.buttonClear.clicked.connect(self.ClearGraph)
+
         buttonLayout.addWidget(self.buttonBuild)
         buttonLayout.addWidget(self.buttonClear)
 
@@ -178,8 +205,8 @@ class MainWindow(QMainWindow):
         self.figure = Figure()
         self.canvas = FigureCanvas(self.figure)
 
-        self.ax = self.figure.add_subplot(111)
-        self.ax.grid(True, linestyle = '--')
+        self.axes = self.figure.add_subplot(111)
+        self.axes.grid(True, linestyle = '--')
 
         self.toolbar = NavigationToolbar(self.canvas, self)
 
@@ -187,6 +214,56 @@ class MainWindow(QMainWindow):
         MPLlayout.addWidget(self.canvas)
 
         self.mainLayout.addLayout(MPLlayout)
+
+    def ClearGraph(self):
+        self.axes.clear()
+        self.axes.grid(True, linestyle='--')
+        self.canvas.draw()
+
+    def BuildGraph(self):
+        try:
+            x0 = float(self.input_x0.text())
+            y0 = float(self.input_y0.text())
+            v0 = float(self.input_v0.text())
+            a = float(self.input_a.text())
+            angleDeg = float(self.input_angle.text())
+            totalTime = float(self.input_time.text())
+            fps = int(self.input_fps.text())
+
+        except ValueError:
+            QMessageBox.critical(self, "We're in trouble!", "Схоже, в форму задано не всі параметри, або задано не числове значення")
+            return
+
+        mathModule = MathModule(x0, y0, v0, a, angleDeg, totalTime)
+        t, x, y = mathModule.DoCalculations()
+
+        selectedColorName = self.graphColor.currentText()
+
+        if selectedColorName == "Свій":
+            plotColor = self.customColor
+        else:
+            plotColor = self.colors.get(selectedColorName, "black")
+
+        self.axes.plot(
+            x,
+            y,
+            color = plotColor,
+            label = f"v0 = {v0}, a = {a}, ∠ = {angleDeg}°"
+        )
+
+        self.axes.legend()
+        self.axes.relim()
+        self.axes.autoscale_view()
+        self.canvas.draw()
+
+    def ChooseCustomColor(self, text):
+        if text == "Свій":
+            color = QColorDialog.getColor()
+
+            if color.isValid():
+                self.customColor = color.name()
+            else:
+                self.graphColor.setCurrentText("Чорний")
 
 
 if __name__ == "__main__":
