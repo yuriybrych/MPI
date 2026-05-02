@@ -1,4 +1,5 @@
 from bruteforce import BruteForce
+from recursive import Recursive
 
 class TestDataStruct:
     #
@@ -31,7 +32,23 @@ def TestBF():
 
     return [algBFData_maxVal, algBFData_itemsDisplay]
 
+def TestRecursive():
+    #
+    #   Рекурсія
+    #
+    algRecData_maxVal, algRecData_items = Recursive(TestDataStruct.W, TestDataStruct.w, TestDataStruct.v)
+    algRecData_itemsDisplay = sorted([i + 1 for i in algRecData_items])
+
+    print(
+        "Алгоритм: Рекурсивний метод\n" +
+        f"\tМакс. цінність: {algRecData_maxVal}\n" +
+        f"\tВибрані предмети: {algRecData_itemsDisplay}\n"
+    )
+
+    return [algRecData_maxVal, algRecData_itemsDisplay]
+
 
 if __name__ == "__main__":
     TestDataStruct.PrintValues()
     BFDataRAW = TestBF()
+    RDataRAW = TestRecursive()
