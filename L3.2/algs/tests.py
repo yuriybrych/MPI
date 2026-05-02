@@ -1,5 +1,7 @@
+from typing import Callable
 from bruteforce import BruteForce
 from recursive import Recursive
+from greedy import Greedy
 
 class TestDataStruct:
     #
@@ -17,38 +19,35 @@ class TestDataStruct:
             f"\tЦінності: {TestDataStruct.v}\n"
         )
 
-def TestBF():
-    #
-    #   Повний перебір
-    #
-    algBFData_maxVal, algBFData_items = BruteForce(TestDataStruct.W, TestDataStruct.w, TestDataStruct.v)
-    algBFData_itemsDisplay = [i + 1 for i in algBFData_items]
+def TestAlgorithm(algName, algorithm: Callable):
+    algData_maxVal, algData_items = algorithm()
+    algData_itemsDisplay = [i + 1 for i in algData_items]
 
     print(
-        "Алгоритм: Повний перебір\n" +
-        f"\tМакс. цінність: {algBFData_maxVal}\n" +
-        f"\tВибрані предмети: {algBFData_itemsDisplay}\n"
+        f"Алгоритм: {algName}\n" +
+        f"\tМакс. цінність: {algData_maxVal}\n" +
+        f"\tВибрані предмети: {algData_itemsDisplay}\n"
     )
 
-    return [algBFData_maxVal, algBFData_itemsDisplay]
-
-def TestRecursive():
-    #
-    #   Рекурсія
-    #
-    algRecData_maxVal, algRecData_items = Recursive(TestDataStruct.W, TestDataStruct.w, TestDataStruct.v)
-    algRecData_itemsDisplay = sorted([i + 1 for i in algRecData_items])
-
-    print(
-        "Алгоритм: Рекурсивний метод\n" +
-        f"\tМакс. цінність: {algRecData_maxVal}\n" +
-        f"\tВибрані предмети: {algRecData_itemsDisplay}\n"
-    )
-
-    return [algRecData_maxVal, algRecData_itemsDisplay]
+    return [algData_maxVal, algData_itemsDisplay]
 
 
 if __name__ == "__main__":
     TestDataStruct.PrintValues()
-    BFDataRAW = TestBF()
-    RDataRAW = TestRecursive()
+    TestAlgorithm(
+        "Повний перебір",
+        lambda W = TestDataStruct.W, w = TestDataStruct.w, v = TestDataStruct.v:
+        BruteForce(W, w, v)
+    )
+
+    TestAlgorithm(
+        "Рекурсивний метод",
+        lambda W = TestDataStruct.W, w = TestDataStruct.w, v = TestDataStruct.v:
+        Recursive(W, w, v)
+    )
+
+    TestAlgorithm(
+        "Жадібний алгоритм",
+        lambda W = TestDataStruct.W, w = TestDataStruct.w, v = TestDataStruct.v:
+        Greedy(W, w, v)
+    )
