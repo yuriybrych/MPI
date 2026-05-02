@@ -7,6 +7,7 @@ QPUSHBUTTON_DEFAULT_STYLESHEET = """
         padding: 10px;
         border-radius: 6px;
         border: 1px solid #aaa;
+        outline: none;
     }
     QPushButton:hover {
         background-color: #fff;
@@ -37,6 +38,20 @@ QPUSHBUTTON_CALC_STYLESHEET = """
     QPushButton[calcButton = "true"]:pressed {
         background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #329e61, stop:1 #2c8c56);
         border: 1px solid #26854b;
+    }
+
+    /* Calc button (active)*/
+    QPushButton[calcButton = "true"][active = "true"] {
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #c2b645, stop:1 #a69336);
+        border: 1px solid #a3972e;
+    }
+    QPushButton[calcButton = "true"][active = "true"]:hover {
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d1b94e, stop:1 #b5a33f);
+        border: 1px solid #b3a436;
+    }
+    QPushButton[calcButton = "true"][active = "true"]:pressed {
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #9e9132, stop:1 #8c812c);
+        border: 1px solid #857d26;
     }
 """
 

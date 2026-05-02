@@ -1,6 +1,5 @@
 import itertools
 
-# дозволю собі повийожуватися новим синтаксисом :>
 def BruteForce(
     capacity: int,
     weights: list[int],
