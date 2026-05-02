@@ -2,6 +2,7 @@ from typing import Callable
 from bruteforce import BruteForce
 from recursive import Recursive
 from greedy import Greedy
+from bnb import BranchAndBound
 
 class TestDataStruct:
     #
@@ -50,4 +51,10 @@ if __name__ == "__main__":
         "Жадібний алгоритм",
         lambda W = TestDataStruct.W, w = TestDataStruct.w, v = TestDataStruct.v:
         Greedy(W, w, v)
+    )
+
+    TestAlgorithm(
+        "Метод гілок та меж",
+        lambda W = TestDataStruct.W, w = TestDataStruct.w, v = TestDataStruct.v:
+        BranchAndBound(W, w, v)
     )
