@@ -4,3 +4,4 @@ __pycache__/
 *.pyd
 clean_build/
 icon.ico
+*.exe
