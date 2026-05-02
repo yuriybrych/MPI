@@ -3,6 +3,7 @@ from bruteforce import BruteForce
 from recursive import Recursive
 from greedy import Greedy
 from bnb import BranchAndBound
+from dynprog import DynamicProgramming
 
 class TestDataStruct:
     #
@@ -32,6 +33,22 @@ def TestAlgorithm(algName, algorithm: Callable):
 
     return [algData_maxVal, algData_itemsDisplay]
 
+def TestDP():
+    #
+    #   Окремий тест метода динамічного програмування
+    #
+    maxVal, items, dpMatrix, animationLog = DynamicProgramming(TestDataStruct.W, TestDataStruct.w, TestDataStruct.v)
+    itemsDisplay = [i + 1 for i in items]
+
+    print(
+        "Алгоритм: Динамічне програмування\n" +
+        f"\tМакс. цінність: {maxVal}\n" +
+        f"\tВибрані предмети: {itemsDisplay}\n" +
+        f"\tКількість кроків для анімації: {len(animationLog)}\n"
+    )
+
+    return [maxVal, itemsDisplay]
+
 
 if __name__ == "__main__":
     TestDataStruct.PrintValues()
@@ -58,3 +75,5 @@ if __name__ == "__main__":
         lambda W = TestDataStruct.W, w = TestDataStruct.w, v = TestDataStruct.v:
         BranchAndBound(W, w, v)
     )
+
+    TestDP()
