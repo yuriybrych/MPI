@@ -55,6 +55,12 @@ class MathCore:
 
         return yCalc, residuals
 
+    @staticmethod
+    def CalculateMetrics(residuals):
+        residuals = np.asarray(residuals, dtype=float)
+        mse = np.mean(residuals ** 2)
+        return mse
+
 
 if __name__ == "__main__":
     testX = [1, 2, 3]
@@ -71,3 +77,5 @@ if __name__ == "__main__":
     yCalc, res = MathCore.CalculateResiduals(testX, testY, coefficients, degree=1, isLog=False)
     print("\nРозрахункові Y у вузлах:\n", yCalc)
     print("Залишки:\n", res)
+
+    print(MathCore.CalculateMetrics(res))
