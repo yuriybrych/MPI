@@ -21,9 +21,21 @@ class MathCore:
             yEval += yNodes[i] * L_i
         return yEval
 
+    @staticmethod
+    def GenerateDesignMatrix(xNodes, degree=2, isLog=False):
+        xNodes = np.asarray(xNodes, dtype=float)
+
+        if isLog:
+            lnX = np.log(xNodes)
+            return np.column_stack((np.ones_like(xNodes), lnX))
+        else:
+            return np.vander(xNodes, N=degree + 1, increasing=True)
+
 
 if __name__ == "__main__":
     testX = [1, 2, 3]
     testY = [2, 4, 6]
     evalX = np.linspace(1, 3, 5)
     print(MathCore.CalculateLag(testX, testY, evalX))
+
+    print(MathCore.GenerateDesignMatrix(testX))
