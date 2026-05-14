@@ -44,6 +44,17 @@ class MathCore:
 
         return yEval, B
 
+    @staticmethod
+    def CalculateResiduals(xNodes, yNodes, B, degree=2, isLog=False):
+        yNodes = np.asarray(yNodes, dtype=float)
+
+        matrixX = MathCore.GenerateDesignMatrix(xNodes, degree, isLog)
+        yCalc = matrixX @ B
+
+        residuals = yNodes - yCalc
+
+        return yCalc, residuals
+
 
 if __name__ == "__main__":
     testX = [1, 2, 3]
@@ -56,3 +67,7 @@ if __name__ == "__main__":
     yEvalMnk, coefficients = MathCore.CalculateMnk(testX, testY, evalX, degree=1, isLog=False)
     print("\nМНК:\n", yEvalMnk)
     print("b0, b1:\n", coefficients)
+
+    yCalc, res = MathCore.CalculateResiduals(testX, testY, coefficients, degree=1, isLog=False)
+    print("\nРозрахункові Y у вузлах:\n", yCalc)
+    print("Залишки:\n", res)
