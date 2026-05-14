@@ -6,10 +6,12 @@ from PyQt6.QtWidgets import (
     QButtonGroup, QHeaderView, QGroupBox, QStyle
 )
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QInputDialog, QMessageBox
 from stylesheet import AIO
 from randomfacts import RANDOM_FACTS
 from canvas import PlotCanvas
 import random
+import re
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -108,7 +110,12 @@ class MainWindow(QMainWindow):
         self.btnAddRow.setProperty("addRow", True)
         self.btnRemoveRow = QPushButton("Видалити вибране")
         self.btnRemoveRow.setProperty("removeRow", True)
+
+        self.btnImportString = QPushButton("Ввести RAW")
+        self.btnImportString.setProperty("importButton", True)
+
         tableBtnLayout.addWidget(self.btnAddRow)
+        tableBtnLayout.addWidget(self.btnImportString)
         tableBtnLayout.addWidget(self.btnRemoveRow)
         tableGroupLayout.addLayout(tableBtnLayout)
 
@@ -122,6 +129,8 @@ class MainWindow(QMainWindow):
         self.btnAddRow.clicked.connect(self.AddPoint)
         self.btnRemoveRow.clicked.connect(self.RemovePoint)
         self.btnClear.clicked.connect(self.ClearAll)
+        self.btnBuild.clicked.connect(self.BuildAndPlot)
+        self.btnImportString.clicked.connect(self.ImportString)
 
     # F2.1
     def AddPoint(self):
@@ -144,6 +153,15 @@ class MainWindow(QMainWindow):
         self.lblMse.setText("MSE: -/-")
         self.plotCanvas.InitStaticPlot()
 
+    def BuildAndPlot(self):
+        xNodes, yNodes = self.GetTableData()
+
+        if not xNodes or len(xNodes) == 0:
+            return
+
+        self.mainTabs.setCurrentIndex(0)
+        self.plotCanvas.PlotBasePoints(xNodes, yNodes)
+
     def GetTableData(self):
         xNodes = []
         yNodes = []
@@ -161,6 +179,40 @@ class MainWindow(QMainWindow):
                     continue
 
         return xNodes, yNodes
+
+    def ImportString(self):
+        inputStr, ok = QInputDialog.getText(
+            self,
+            "Введення точок RAW виду",
+            "Вставте рядок з точками:",
+            text="(0, 1.2), (2, 3.5), (4, 4.1), (6, 5.8), (8, 9.2)"
+        )
+
+        if ok and inputStr:
+            pairs = re.findall(r"\(([^,]+),\s*([^)]+)\)", inputStr)
+
+            if not pairs:
+                QMessageBox.warning(
+                    self, "Ехххх, не фуриче сьогодні...",
+                    "Не вдалося розпізнати формат.\nВикористовуйте: (x1, y1), (x2, y2)"
+                )
+                return
+
+            self.dataTable.setRowCount(0)
+
+            for xStr, yStr in pairs:
+                try:
+                    xVal = xStr.strip().replace(',', '.')
+                    yVal = yStr.strip().replace(',', '.')
+
+                    row = self.dataTable.rowCount()
+                    self.dataTable.insertRow(row)
+                    self.dataTable.setItem(row, 0, QTableWidgetItem(xVal))
+                    self.dataTable.setItem(row, 1, QTableWidgetItem(yVal))
+                except Exception as e:
+                    print(f"Помилка при імпорті точки: {e}")
+
+            QMessageBox.information(self, "Ecgsiyj svgjhnjdfyj!", f"Імпортовано точок: {len(pairs)}")
 
 
 if __name__ == "__main__":

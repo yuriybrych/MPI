@@ -5,7 +5,7 @@ QPUSHBUTTON_DEFAULT_STYLESHEET = """
         border: 1px solid #9e9e9e;
         color: white;
         font-weight: bold;
-        padding: 10px;
+        padding: 4px 10px;
         border-radius: 6px;
         outline: none;
     }
@@ -87,12 +87,21 @@ QPUSHBUTTON_ROWS_STYLESHEET = """
         border-top-right-radius: 0px;
         border-bottom-right-radius: 0px;
         border-bottom-left-radius: 10px;
+        padding: 10px;
     }
     QPushButton[removeRow = "true"] {
         border-top-left-radius: 0px;
         border-top-right-radius: 0px;
         border-bottom-right-radius: 10px;
         border-bottom-left-radius: 0px;
+        padding: 10px;
+    }
+    QPushButton[importButton = "true"] {
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+        border-bottom-right-radius: 0px;
+        border-bottom-left-radius: 0px;
+        padding: 10px;
     }
 """
 
