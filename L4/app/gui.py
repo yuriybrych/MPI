@@ -2,14 +2,17 @@ import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
     QHBoxLayout, QTableWidget, QRadioButton, QTableWidgetItem,
-    QPushButton, QComboBox, QLabel, QTabWidget,
-    QButtonGroup, QHeaderView, QGroupBox, QStyle
+    QPushButton, QComboBox, QLabel, QTabWidget, QSpinBox,
+    QButtonGroup, QHeaderView, QGroupBox, QStyle, QDoubleSpinBox
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QInputDialog, QMessageBox
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from stylesheet import AIO
 from randomfacts import RANDOM_FACTS
 from canvas import PlotCanvas
+from mathmodule import MathCore
+from animengine import AnimationEngine
 import random
 import re
 
@@ -17,6 +20,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.InitUI()
+        self.mathCore = MathCore()
+        self.animEngine = AnimationEngine(self.plotCanvas, self.mathCore)
 
     def InitUI(self):
         self.setWindowTitle(f"Рандомний факт: {random.choice(RANDOM_FACTS)}")
@@ -43,6 +48,20 @@ class MainWindow(QMainWindow):
         self.comboDegree = QComboBox()
         self.comboDegree.addItems(["Лінійна", "Квадратична", "Кубічна", "Логарифмічна"])
         settingsLayout.addWidget(self.comboDegree)
+
+        settingsLayout.addWidget(QLabel("Множник запасу осі Y:"))
+        self.spinScale = QDoubleSpinBox()
+        self.spinScale.setRange(0.1, 100.0)
+        self.spinScale.setSingleStep(0.5)
+        self.spinScale.setValue(1.5)
+        settingsLayout.addWidget(self.spinScale)
+
+        settingsLayout.addWidget(QLabel("Інтервал анімації:"))
+        self.spinTimer = QSpinBox()
+        self.spinTimer.setRange(10, 3000)
+        self.spinTimer.setSingleStep(50)
+        self.spinTimer.setValue(500)
+        settingsLayout.addWidget(self.spinTimer)
 
         settingsLayout.addWidget(QLabel("Режим відображення:"))
         self.radioLagrange = QRadioButton("Інтерполяція")
@@ -90,6 +109,8 @@ class MainWindow(QMainWindow):
         self.tabPlot = QWidget()
         plotLayout = QVBoxLayout(self.tabPlot)
         self.plotCanvas = PlotCanvas(self.tabPlot)
+        self.toolbar = NavigationToolbar(self.plotCanvas, self.tabPlot)
+        plotLayout.addWidget(self.toolbar)
         plotLayout.addWidget(self.plotCanvas)
         self.mainTabs.addTab(self.tabPlot, "Візуалізація")
 
@@ -155,12 +176,24 @@ class MainWindow(QMainWindow):
 
     def BuildAndPlot(self):
         xNodes, yNodes = self.GetTableData()
-
-        if not xNodes or len(xNodes) == 0:
+        if not xNodes or len(xNodes) < 2:
             return
 
         self.mainTabs.setCurrentIndex(0)
-        self.plotCanvas.PlotBasePoints(xNodes, yNodes)
+        self.lblMse.setText("MSE: ...")
+
+        scaleVal = self.spinScale.value()
+        timerVal = self.spinTimer.value()
+
+        if self.radioLagrange.isChecked():
+            self.animEngine.StartLagrangeAnimation(xNodes, yNodes, scaleVal, timerVal)
+            self.lblMse.setText("MSE: Не застосовується для інтерполяції")
+
+        elif self.radioMnk.isChecked():
+            pass
+        else:
+            self.plotCanvas.PlotBasePoints(xNodes, yNodes)
+            self.lblMse.setText("MSE: -/-")
 
     def GetTableData(self):
         xNodes = []
