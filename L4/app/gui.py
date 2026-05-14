@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QHBoxLayout, QTableWidget, QRadioButton,
+    QHBoxLayout, QTableWidget, QRadioButton, QTableWidgetItem,
     QPushButton, QComboBox, QLabel, QTabWidget,
     QButtonGroup, QHeaderView, QGroupBox, QStyle
 )
@@ -120,15 +120,47 @@ class MainWindow(QMainWindow):
         mainLayout.addWidget(leftPanelWidget)
         mainLayout.addWidget(self.mainTabs)
 
+        self.btnAddRow.clicked.connect(self.AddPoint)
+        self.btnRemoveRow.clicked.connect(self.RemovePoint)
+        self.btnClear.clicked.connect(self.ClearAll)
+
     # F2.1
     def AddPoint(self):
-        pass
+        currentRowCount = self.dataTable.rowCount()
+        self.dataTable.insertRow(currentRowCount)
+        self.dataTable.setItem(currentRowCount, 0, QTableWidgetItem(""))
+        self.dataTable.setItem(currentRowCount, 1, QTableWidgetItem(""))
 
     def RemovePoint(self):
-        pass
+        currentRow = self.dataTable.currentRow()
+        if currentRow >= 0:
+            self.dataTable.removeRow(currentRow)
+        else:
+            rowCount = self.dataTable.rowCount()
+            if rowCount > 0:
+                self.dataTable.removeRow(rowCount - 1)
 
     def ClearAll(self):
-        pass
+        self.dataTable.setRowCount(0)
+        self.lblMse.setText("MSE: -/-")
+
+    def GetTableData(self):
+        xNodes = []
+        yNodes = []
+        for row in range(self.dataTable.rowCount()):
+            itemX = self.dataTable.item(row, 0)
+            itemY = self.dataTable.item(row, 1)
+
+            if itemX and itemY and itemX.text().strip() and itemY.text().strip():
+                try:
+                    xVal = float(itemX.text().replace(',', '.'))
+                    yVal = float(itemY.text().replace(',', '.'))
+                    xNodes.append(xVal)
+                    yNodes.append(yVal)
+                except ValueError:
+                    continue
+
+        return xNodes, yNodes
 
 
 if __name__ == "__main__":
