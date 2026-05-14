@@ -5,7 +5,7 @@ QPUSHBUTTON_DEFAULT_STYLESHEET = """
         border: 1px solid #9e9e9e;
         color: white;
         font-weight: bold;
-        padding: 4px 10px;
+        padding: 4px 20px;
         border-radius: 6px;
         outline: none;
     }
@@ -126,6 +126,43 @@ QCOMBOBOX_STYLESHEET = """
     }
 """
 
+QSPINBOXES_STYLESHEET = """
+    QSpinBox, QDoubleSpinBox {
+        border: 1px solid #CFD8DC;
+        border-radius: 6px;
+        padding: 5px;
+        background-color: #FFFFFF;
+        color: #37474F;
+        font-size: 13px;
+        min-height: 16px;
+    }
+
+    QSpinBox::up-button, QDoubleSpinBox::up-button {
+        background-color: #DDD;
+        border: 1px solid #DDD;
+        border-top-right-radius: 4px;
+        width: 16px;
+    }
+
+    QSpinBox::down-button, QDoubleSpinBox::down-button {
+        background-color: #DDD;
+        border: 1px solid #DDD;
+        border-bottom-right-radius: 4px;
+        width: 16px;
+    }
+
+    QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover,
+    QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover {
+        background-color: #DFE1E5;
+        border: 1px solid #4CAF50;
+    }
+
+    QSpinBox:focus, QDoubleSpinBox:focus {
+        border: 1px solid #4CAF50;
+    }
+"""
+
 AIO = (
-    QPUSHBUTTON_CLEAR_STYLESHEET + QPUSHBUTTON_CALC_STYLESHEET + QPUSHBUTTON_DEFAULT_STYLESHEET + QCOMBOBOX_STYLESHEET + QPUSHBUTTON_ROWS_STYLESHEET
+    QPUSHBUTTON_CLEAR_STYLESHEET + QPUSHBUTTON_CALC_STYLESHEET + QPUSHBUTTON_DEFAULT_STYLESHEET +
+    QCOMBOBOX_STYLESHEET + QPUSHBUTTON_ROWS_STYLESHEET + QSPINBOXES_STYLESHEET
 )

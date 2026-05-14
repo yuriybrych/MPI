@@ -8,11 +8,11 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QInputDialog, QMessageBox
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
-from stylesheet import AIO
-from randomfacts import RANDOM_FACTS
-from canvas import PlotCanvas
-from mathmodule import MathCore
-from animengine import AnimationEngine
+from .stylesheet import AIO
+from .randomfacts import RANDOM_FACTS
+from .canvas import PlotCanvas
+from .mathmodule import MathCore
+from .animengine import AnimationEngine
 import random
 import re
 
@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
 
         settingsLayout.addWidget(QLabel("Інтервал анімації:"))
         self.spinTimer = QSpinBox()
-        self.spinTimer.setRange(0, 3000)
+        self.spinTimer.setRange(75, 1500)
         self.spinTimer.setSingleStep(50)
         self.spinTimer.setValue(500)
         settingsLayout.addWidget(self.spinTimer)
@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
         settingsLayout.addWidget(QLabel("Режим відображення:"))
         self.radioLagrange = QRadioButton("Інтерполяція")
         self.radioMnk = QRadioButton("Апроксимація")
-        self.radioAll = QRadioButton("Усі графіки")
+        self.radioAll = QRadioButton("Точки")
         self.radioAll.setChecked(True)
 
         self.radioGroup = QButtonGroup()
@@ -135,8 +135,12 @@ class MainWindow(QMainWindow):
         self.btnImportString = QPushButton("Ввести RAW")
         self.btnImportString.setProperty("importButton", True)
 
+        self.btnClearData = QPushButton("Очистити")
+        self.btnClearData.setProperty("importButton", True)
+
         tableBtnLayout.addWidget(self.btnAddRow)
         tableBtnLayout.addWidget(self.btnImportString)
+        tableBtnLayout.addWidget(self.btnClearData)
         tableBtnLayout.addWidget(self.btnRemoveRow)
         tableGroupLayout.addLayout(tableBtnLayout)
 
@@ -149,6 +153,7 @@ class MainWindow(QMainWindow):
 
         self.btnAddRow.clicked.connect(self.AddPoint)
         self.btnRemoveRow.clicked.connect(self.RemovePoint)
+        self.btnClearData.clicked.connect(self.DeleteAllData)
         self.btnClear.clicked.connect(self.ClearAll)
         self.btnBuild.clicked.connect(self.BuildAndPlot)
         self.btnImportString.clicked.connect(self.ImportString)
@@ -169,10 +174,13 @@ class MainWindow(QMainWindow):
             if rowCount > 0:
                 self.dataTable.removeRow(rowCount - 1)
 
-    def ClearAll(self):
+    def DeleteAllData(self):
         self.dataTable.setRowCount(0)
+
+    def ClearAll(self):
         self.lblMse.setText("MSE: -/-")
         self.plotCanvas.InitStaticPlot()
+        self.animEngine.timer.stop()
 
     def BuildAndPlot(self):
         xNodes, yNodes = self.GetTableData()
@@ -200,6 +208,16 @@ class MainWindow(QMainWindow):
                 degree = 3
             elif "Логарифмічна" in comboText:
                 isLog = True
+
+            if isLog and any(x <= 0 for x in xNodes):
+                QMessageBox.warning(
+                    self, "Не, чето не хочу пока",
+                    "Логарифмічна функція не визначена для X ≤ 0.\n"
+                    "У ваших даних є нуль або від'ємне число.\n\n"
+                    "Будь ласка, оберіть поліноміальну апроксимацію або змініть дані."
+                )
+                self.lblMse.setText("MSE: Помилка")
+                return
 
             residuals = self.animEngine.StartMnkAnimation(xNodes, yNodes, degree, isLog, scaleVal, timerVal)
 

@@ -45,14 +45,27 @@ class AnimationEngine(QObject):
         self.plotCanvas.InitStaticPlot()
         self.plotCanvas.axes.set_ylim(self.fixedYMin, self.fixedYMax)
 
+        scOld = None
         if self.currentIndex > 1:
-            self.plotCanvas.axes.scatter(
+            scOld = self.plotCanvas.axes.scatter(
                 currentX[:-1], currentY[:-1],
-                color="#FF5722",
+                color='#FF5722',
                 s=50,
-                label="Вузли",
+                label='Вузли',
                 zorder=5
             )
+
+        scActive = self.plotCanvas.axes.scatter(
+            currentX[-1], currentY[-1],
+            color='#2196F3', s=100, edgecolors='black',
+            label='Активний вузол', zorder=6
+        )
+
+        nodesToHover = [scActive]
+        if scOld:
+            nodesToHover.append(scOld)
+
+        self.plotCanvas.SetHoverData(nodesToHover, None)
 
         self.plotCanvas.axes.scatter(
             currentX[-1], currentY[-1],
@@ -88,7 +101,7 @@ class AnimationEngine(QObject):
         padding = (maxY - minY) * paddingMultiplier if (maxY - minY) != 0 else 1.0
         self.fixedYMin, self.fixedYMax = minY - padding, maxY + padding
 
-        self.totalFrames = 30
+        self.totalFrames = 10
         self.currentFrame = 0
         self.residualIndex = 0
 
@@ -102,13 +115,14 @@ class AnimationEngine(QObject):
         self.plotCanvas.InitStaticPlot()
         self.plotCanvas.axes.set_ylim(self.fixedYMin, self.fixedYMax)
 
-        self.plotCanvas.axes.scatter(
+        sc = self.plotCanvas.axes.scatter(
             self.xNodes, self.yNodes,
             color="#FF5722",
             s=50,
             label="Експериментальні точки",
             zorder=5
         )
+        self.plotCanvas.SetHoverData([sc], self.residuals)
 
         if self.currentFrame <= self.totalFrames:
             t = self.currentFrame / self.totalFrames
