@@ -31,11 +31,28 @@ class MathCore:
         else:
             return np.vander(xNodes, N=degree + 1, increasing=True)
 
+    @staticmethod
+    def CalculateMnk(xNodes, yNodes, xEval, degree=2, isLog=False):
+        yNodes = np.asarray(yNodes, dtype=float)
+
+        matrixX = MathCore.GenerateDesignMatrix(xNodes, degree, isLog)
+
+        B, residuals, rank, s = np.linalg.lstsq(matrixX, yNodes, rcond=None)
+
+        evalMatrix = MathCore.GenerateDesignMatrix(xEval, degree, isLog)
+        yEval = evalMatrix @ B
+
+        return yEval, B
+
 
 if __name__ == "__main__":
     testX = [1, 2, 3]
     testY = [2, 4, 6]
     evalX = np.linspace(1, 3, 5)
-    print(MathCore.CalculateLag(testX, testY, evalX))
+    print("Інтерполяція:\n", MathCore.CalculateLag(testX, testY, evalX))
 
-    print(MathCore.GenerateDesignMatrix(testX))
+    print("\nМатриця:\n", MathCore.GenerateDesignMatrix(testX))
+
+    yEvalMnk, coefficients = MathCore.CalculateMnk(testX, testY, evalX, degree=1, isLog=False)
+    print("\nМНК:\n", yEvalMnk)
+    print("b0, b1:\n", coefficients)
