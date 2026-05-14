@@ -13,6 +13,8 @@ class AnimationEngine(QObject):
     def OnTimerTick(self):
         if self.currentAnimMode == "lagrange":
             self.NextLagrangeStep()
+        elif self.currentAnimMode == "mnk":
+            self.NextMnkStep()
 
     def StartLagrangeAnimation(self, xNodes, yNodes, paddingMultiplier=1.5, timerInterval=500):
         if not xNodes or len(xNodes) < 2:
@@ -71,3 +73,87 @@ class AnimationEngine(QObject):
         self.plotCanvas.axes.legend(loc="best")
         self.plotCanvas.draw()
         self.currentIndex += 1
+
+    def StartMnkAnimation(self, xNodes, yNodes, degree, isLog, paddingMultiplier=1.5, timerInterval=50):
+        if not xNodes or len(xNodes) < 2:
+            return
+        self.currentAnimMode = "mnk"
+        self.xNodes, self.yNodes = np.array(xNodes), np.array(yNodes)
+
+        self.xEval = np.linspace(min(self.xNodes), max(self.xNodes), 500)
+        self.finalYEval, self.coefficients = self.mathCore.CalculateMnk(self.xNodes, self.yNodes, self.xEval, degree, isLog)
+        self.yCalc, self.residuals = self.mathCore.CalculateResiduals(self.xNodes, self.yNodes, self.coefficients, degree, isLog)
+
+        minY, maxY = np.min(self.yNodes), np.max(self.yNodes)
+        padding = (maxY - minY) * paddingMultiplier if (maxY - minY) != 0 else 1.0
+        self.fixedYMin, self.fixedYMax = minY - padding, maxY + padding
+
+        self.totalFrames = 30
+        self.currentFrame = 0
+        self.residualIndex = 0
+
+        self.plotCanvas.InitStaticPlot()
+        self.timer.start(timerInterval)
+
+        return self.residuals
+
+    def NextMnkStep(self):
+        self.plotCanvas.axes.clear()
+        self.plotCanvas.InitStaticPlot()
+        self.plotCanvas.axes.set_ylim(self.fixedYMin, self.fixedYMax)
+
+        self.plotCanvas.axes.scatter(
+            self.xNodes, self.yNodes,
+            color="#FF5722",
+            s=50,
+            label="Експериментальні точки",
+            zorder=5
+        )
+
+        if self.currentFrame <= self.totalFrames:
+            t = self.currentFrame / self.totalFrames
+            currentYEval = self.finalYEval * t
+
+            self.plotCanvas.axes.plot(
+                self.xEval, currentYEval,
+                color="#9C27B0",
+                linewidth=2,
+                label="Тренд",
+                zorder=4
+            )
+            self.currentFrame += 1
+        else:
+            self.plotCanvas.axes.plot(
+                self.xEval, self.finalYEval,
+                color="#9C27B0",
+                linewidth=2,
+                label="Тренд",
+                zorder=4
+            )
+
+            for i in range(self.residualIndex):
+                x = [self.xNodes[i], self.xNodes[i]]
+                y = [self.yNodes[i], self.yCalc[i]]
+                self.plotCanvas.axes.plot(
+                    x, y,
+                    color="#E53935",
+                    linestyle="--",
+                    linewidth=1.5,
+                    zorder=3
+                )
+
+            if self.residualIndex > 0:
+                self.plotCanvas.axes.plot(
+                    [], [],
+                    color="#E53935",
+                    linestyle="--",
+                    label="Залишки"
+                )
+
+            self.residualIndex += 1
+
+            if self.residualIndex > len(self.xNodes):
+                self.timer.stop()
+
+        self.plotCanvas.axes.legend(loc="best")
+        self.plotCanvas.draw()

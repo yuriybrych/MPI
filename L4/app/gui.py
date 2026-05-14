@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
 
         settingsLayout.addWidget(QLabel("Інтервал анімації:"))
         self.spinTimer = QSpinBox()
-        self.spinTimer.setRange(10, 3000)
+        self.spinTimer.setRange(0, 3000)
         self.spinTimer.setSingleStep(50)
         self.spinTimer.setValue(500)
         settingsLayout.addWidget(self.spinTimer)
@@ -190,7 +190,21 @@ class MainWindow(QMainWindow):
             self.lblMse.setText("MSE: Не застосовується для інтерполяції")
 
         elif self.radioMnk.isChecked():
-            pass
+            comboText = self.comboDegree.currentText()
+            degree = 1
+            isLog = False
+
+            if "Квадратична" in comboText:
+                degree = 2
+            elif "Кубічна" in comboText:
+                degree = 3
+            elif "Логарифмічна" in comboText:
+                isLog = True
+
+            residuals = self.animEngine.StartMnkAnimation(xNodes, yNodes, degree, isLog, scaleVal, timerVal)
+
+            mse = self.mathCore.CalculateMetrics(residuals)
+            self.lblMse.setText(f"MSE: {mse:.4f}")
         else:
             self.plotCanvas.PlotBasePoints(xNodes, yNodes)
             self.lblMse.setText("MSE: -/-")
