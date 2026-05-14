@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from stylesheet import AIO
 from randomfacts import RANDOM_FACTS
+from canvas import PlotCanvas
 import random
 
 class MainWindow(QMainWindow):
@@ -86,10 +87,8 @@ class MainWindow(QMainWindow):
         # I2.3
         self.tabPlot = QWidget()
         plotLayout = QVBoxLayout(self.tabPlot)
-        self.canvasPlaceholder = QLabel("Matplotlib placeholder")
-        self.canvasPlaceholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.canvasPlaceholder.setStyleSheet("background-color: #ECEFF1; border: 2px dashed #CFD8DC; color: #546E7A;")
-        plotLayout.addWidget(self.canvasPlaceholder)
+        self.plotCanvas = PlotCanvas(self.tabPlot)
+        plotLayout.addWidget(self.plotCanvas)
         self.mainTabs.addTab(self.tabPlot, "Візуалізація")
 
         # I2.1
@@ -143,6 +142,7 @@ class MainWindow(QMainWindow):
     def ClearAll(self):
         self.dataTable.setRowCount(0)
         self.lblMse.setText("MSE: -/-")
+        self.plotCanvas.InitStaticPlot()
 
     def GetTableData(self):
         xNodes = []
